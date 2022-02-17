@@ -85,12 +85,14 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// Inserts key
 func Put(key, value string) error {
 	store[key] = value
 
 	return nil
 }
 
+// Returns value
 func Get(key string) (string, error) {
 	value, ok := store[key]
 	if !ok {
@@ -99,12 +101,12 @@ func Get(key string) (string, error) {
 	return value, nil
 }
 
+// Deletes key 
 func Delete(key string) error {
 	_, ok := store[key]
 	if !ok {
 		return ErrorNoSuchKey
-	} else {
-		delete(store, key)
-		return nil
-	}
+	} 
+	delete(store, key)
+	return nil
 }
