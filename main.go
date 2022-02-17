@@ -5,15 +5,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"go_storage/helpers"
+	
 	"github.com/gorilla/mux"
 )
 
 const port = ":8080"
-
-var store = make(map[string]string)
-
-// ErrorNoSuchKey thrown when key not found 
-var ErrorNoSuchKey = errors.New("no such key")
 
 func main() {
 	log.Printf("service is running on %s port", port)
@@ -37,7 +34,7 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = Put(key, string(value))
+	err = helpers.Put(key, string(value))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,10 +46,10 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 func keyValueReadHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
-	value, err := Get(key)
+	value, err := helpers.Get(key)
 	log.Printf("recived GET request with key: %s", key)
 	
-	if errors.Is(err, ErrorNoSuchKey) {
+	if errors.Is(err, helpers.ErrorNoSuchKey) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -68,11 +65,11 @@ func keyValueReadHandler(w http.ResponseWriter, r *http.Request) {
 func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
-	err := Delete(key)
+	err := helpers.Delete(key)
 
 	log.Printf("recived DELETE request with key: %s", key)
 
-	if errors.Is(err, ErrorNoSuchKey) {
+	if errors.Is(err, helpers.ErrorNoSuchKey) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -87,28 +84,3 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// Put key in store
-func Put(key, value string) error {
-	store[key] = value
-
-	return nil
-}
-
-// Get value form store
-func Get(key string) (string, error) {
-	value, ok := store[key]
-	if !ok {
-		return "", ErrorNoSuchKey
-	}
-	return value, nil
-}
-
-// Delete key in store
-func Delete(key string) error {
-	_, ok := store[key]
-	if !ok {
-		return ErrorNoSuchKey
-	} 
-	delete(store, key)
-	return nil
-}
