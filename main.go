@@ -11,6 +11,8 @@ import (
 const port = ":8080"
 
 var store = make(map[string]string)
+
+// Error when key not found 
 var ErrorNoSuchKey = errors.New("no such key")
 
 func main() {
@@ -85,14 +87,14 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// Inserts key
+// Put key
 func Put(key, value string) error {
 	store[key] = value
 
 	return nil
 }
 
-// Returns value
+// Return value
 func Get(key string) (string, error) {
 	value, ok := store[key]
 	if !ok {
@@ -101,7 +103,7 @@ func Get(key string) (string, error) {
 	return value, nil
 }
 
-// Deletes key 
+// Delete key 
 func Delete(key string) error {
 	_, ok := store[key]
 	if !ok {
