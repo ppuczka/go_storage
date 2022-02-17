@@ -15,8 +15,12 @@ var ErrorNoSuchKey = errors.New("no such key")
 
 func main() {
 	log.Printf("service is running on %s port", port)
+	
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
+	router.HandleFunc("/v1/{key}", keyValueReadHandler).Methods("GET")
+	router.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
+	
 	log.Fatal(http.ListenAndServe(port, router))
 }
 
@@ -26,6 +30,7 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 	value, err := io.ReadAll(r.Body)
 	r.Body.Close()
 	log.Printf("recived PUT request with key: %s and value: %s", key, value)
+	
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -35,6 +40,48 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	log.Printf("---- Created ----")
+	w.WriteHeader(http.StatusCreated)
+}
+
+func keyValueReadHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key := vars["key"]
+	value, err := Get(key)
+	log.Printf("recived GET request with key: %s", key)
+	
+	if errors.Is(err, ErrorNoSuchKey) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(value))
+}
+
+func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key := vars["key"]
+	err := Delete(key)
+
+	log.Printf("recived DELETE request with key: %s", key)
+
+	if errors.Is(err, ErrorNoSuchKey) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	log.Printf("---- DELETED ----")
+
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -53,7 +100,11 @@ func Get(key string) (string, error) {
 }
 
 func Delete(key string) error {
-	delete(store, key)
-
-	return nil
+	_, ok := store[key]
+	if !ok {
+		return ErrorNoSuchKey
+	} else {
+		delete(store, key)
+		return nil
+	}
 }
