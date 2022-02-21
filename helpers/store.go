@@ -8,7 +8,6 @@ import (
 // ErrorNoSuchKey thrown when key not found
 var ErrorNoSuchKey = errors.New("no such key")
 
-
 var store = struct{
 	sync.RWMutex
 	m map[string]string
