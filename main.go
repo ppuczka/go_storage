@@ -2,21 +2,22 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"go_storage/helpers"
 	"io"
 	"log"
 	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
 const port = ":8080"
-
-var store = make(map[string]string)
-
-// ErrorNoSuchKey thrown when key not found 
-var ErrorNoSuchKey = errors.New("no such key")
+var logger helpers.FileTransactionLogger
 
 func main() {
+
 	log.Printf("service is running on %s port", port)
+	initializeTransactionLog()
 	
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
@@ -24,6 +25,33 @@ func main() {
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
 	
 	log.Fatal(http.ListenAndServe(port, router))
+}
+
+func initializeTransactionLog() error {
+
+	var err error 
+	logger, err = helpers.NewFileTransactionLogger("transaction.log")
+	if err != nil {
+		return fmt.Errorf("failed to create event logger: %w", err)
+	}
+	log.Printf("event logger initialized")
+	
+	events, errors := logger.ReadEvents()
+	e, ok := helpers.Event{}, true
+	for ok && err == nil {
+		select {
+		case err, ok = <- errors:
+		case e, ok = <- events:
+			switch e.EventType {
+			case helpers.EventDelete:
+				err = helpers.Delete(e.Key)
+			case helpers.EventPut: 
+			err = helpers.Put(e.Key, e.Value)
+			}
+		}
+	}
+	logger.Run()
+	return err
 }
 
 func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,11 +65,12 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = Put(key, string(value))
+	err = helpers.Put(key, string(value))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	logger.WritePut(key, string(value))
 	log.Printf("---- Created ----")
 	w.WriteHeader(http.StatusCreated)
 }
@@ -49,10 +78,10 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 func keyValueReadHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
-	value, err := Get(key)
+	value, err := helpers.Get(key)
 	log.Printf("recived GET request with key: %s", key)
 	
-	if errors.Is(err, ErrorNoSuchKey) {
+	if errors.Is(err, helpers.ErrorNoSuchKey) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -68,11 +97,11 @@ func keyValueReadHandler(w http.ResponseWriter, r *http.Request) {
 func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
-	err := Delete(key)
+	err := helpers.Delete(key)
 
 	log.Printf("recived DELETE request with key: %s", key)
 
-	if errors.Is(err, ErrorNoSuchKey) {
+	if errors.Is(err, helpers.ErrorNoSuchKey) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -82,33 +111,9 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	logger.WrieDelete(key)
 	log.Printf("---- DELETED ----")
 
 	w.WriteHeader(http.StatusCreated)
 }
 
-// Put key in store
-func Put(key, value string) error {
-	store[key] = value
-
-	return nil
-}
-
-// Get value form store
-func Get(key string) (string, error) {
-	value, ok := store[key]
-	if !ok {
-		return "", ErrorNoSuchKey
-	}
-	return value, nil
-}
-
-// Delete key in store
-func Delete(key string) error {
-	_, ok := store[key]
-	if !ok {
-		return ErrorNoSuchKey
-	} 
-	delete(store, key)
-	return nil
-}
