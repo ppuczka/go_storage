@@ -1,12 +1,14 @@
 package helpers
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
+	"log"
+
 	_ "github.com/lib/pq"
 )
 
-const tableName = "storage"
+const tableName = "transactions"
 
 type PostgresTransactionLogger struct {
 	events      chan <- Event
@@ -19,7 +21,7 @@ func (l *PostgresTransactionLogger) WritePut(key, value string) {
 	l.events <- Event{ EventType: EventPut, Key: key, Value: value}
 }
 
-func (l *PostgresTransactionLogger) WrieDelete(key string) {
+func (l *PostgresTransactionLogger) WriteDelete(key string) {
 	l.events <- Event{ EventType: EventDelete, Key: key}
 }
 
@@ -61,13 +63,72 @@ func (l *PostgresTransactionLogger) createTable() error {
 	return nil
 }
 
+func (l *PostgresTransactionLogger) Run() {
+	events := make(chan Event, 16)
+	l.events = events
+
+	errors := make(chan error, 1)
+	l.errors = errors
+
+	go func() {
+		query := `INSERT INTO transactions (event_type, key, value) VALUES ($1, $2, $3)`
+
+		for e := range events {
+			_, err := l.db.Exec(query, e.EventType, e.Key, e.Value)
+		
+			if err != nil {
+				errors <- err
+			}	
+		}
+	}()
+}
+
+func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
+	outEvent := make(chan Event)
+	outError := make(chan error, 1)
+
+	go func() {
+		defer close(outEvent)
+		defer close(outError)
+
+		query := `SELECT sequence, event_type, key, value FROM transactions ORDER BY sequence`
+
+		rows, err := l.db.Query(query)
+		if err != nil {
+			outError <- fmt.Errorf("sql query error: %w", err)
+			return
+		}
+		defer rows.Close()
+		e := Event{}
+
+		for rows.Next() {
+
+			err = rows.Scan(&e.Sequence, &e.EventType, &e.Key, &e.Value)
+			if err != nil {
+				outError <- fmt.Errorf("error reading row: %w", err)
+				return
+			}
+			outEvent <- e
+		}
+		err = rows.Err()
+		if err != nil {
+			outError <- fmt.Errorf("transaction log read failure: %w", err)
+		}
+	}()
+	return outEvent, outError
+}
+
 func NewPostgresTransactionLogger(config PostrgesDBParams) (TransactionLogger, error) {
 
-	connString := fmt.Sprintf("host=%s, dbname=%s, user=%s, password=%s", config.host, config.dbName, config.user, config.password)
+	connString := fmt.Sprintf("host=%s, dbname=%s, user=%s, password=%s", config.Host, config.DbName, config.User, config.Password)
+
+	log.Printf("opening connection with db %s %s ", config.Host, config.DbName)
+
 	db, err := sql.Open("postgress", connString)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open db: %w", err)
+		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
+	log.Printf("Connection with db %s %s opened", config.Host, config.DbName)
 	
 	err = db.Ping()
 	if err != nil {

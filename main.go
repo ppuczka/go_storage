@@ -12,7 +12,7 @@ import (
 )
 
 const port = ":8080"
-var logger helpers.FileTransactionLogger
+var logger helpers.TransactionLogger
 
 func main() {
 
@@ -28,9 +28,12 @@ func main() {
 }
 
 func initializeTransactionLog() error {
+	log.Printf("Initializing DB connection")
+	connectionParams := helpers.PostrgesDBParams{DbName: "storage", Host: "localhost:5432", 
+													User: "postgres", Password: "test"}
 
 	var err error 
-	logger, err = helpers.NewFileTransactionLogger("transaction.log")
+	logger, err = helpers.NewPostgresTransactionLogger(connectionParams)
 	if err != nil {
 		return fmt.Errorf("failed to create event logger: %w", err)
 	}
@@ -111,7 +114,7 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	logger.WrieDelete(key)
+	// logger.WrieDelete(key)
 	log.Printf("---- DELETED ----")
 
 	w.WriteHeader(http.StatusCreated)
