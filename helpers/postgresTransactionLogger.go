@@ -1,10 +1,9 @@
 package helpers
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
-
+	"database/sql"
 	_ "github.com/lib/pq"
 )
 
@@ -120,21 +119,20 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 
 func NewPostgresTransactionLogger(config PostrgesDBParams) (TransactionLogger, error) {
 
-	connString := fmt.Sprintf("host=%s, dbname=%s, user=%s, password=%s", config.Host, config.DbName, config.User, config.Password)
+	connString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable" , config.Host, config.DbName, config.User, config.Password)
 
 	log.Printf("opening connection with db %s %s ", config.Host, config.DbName)
-
-	db, err := sql.Open("postgress", connString)
+	
+	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
-	log.Printf("Connection with db %s %s opened", config.Host, config.DbName)
+	log.Printf("connection with db %s %s opened", config.Host, config.DbName)
 	
 	err = db.Ping()
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish db connection %w", err)
 	}
-
 	logger := &PostgresTransactionLogger{db: db}
 
 	exists, err := logger.verifyTableExists()

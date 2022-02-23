@@ -15,25 +15,28 @@ const port = ":8080"
 var logger helpers.TransactionLogger
 
 func main() {
+	properties, err := helpers.NewEnvironmentVarsPropertiesLoader()
+	if err != nil {
+		log.Fatal("error while loading application properties from env variables: ", err)
+	}
 
-	log.Printf("service is running on %s port", port)
-	initializeTransactionLog()
+	initializeTransactionLog(properties)
 	
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
 	router.HandleFunc("/v1/{key}", keyValueReadHandler).Methods("GET")
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
 	
-	log.Fatal(http.ListenAndServe(port, router))
+	_, listenPort := properties.AppConnfig()
+	log.Fatal(http.ListenAndServe(listenPort, router))
+	log.Printf("service is running on %s port", port)
+
 }
 
-func initializeTransactionLog() error {
+func initializeTransactionLog(properties helpers.PropertiesLoader) error {
 	log.Printf("Initializing DB connection")
-	connectionParams := helpers.PostrgesDBParams{DbName: "storage", Host: "localhost:5432", 
-													User: "postgres", Password: "test"}
-
 	var err error 
-	logger, err = helpers.NewPostgresTransactionLogger(connectionParams)
+	logger, err = helpers.NewPostgresTransactionLogger(properties.DbConfig())
 	if err != nil {
 		return fmt.Errorf("failed to create event logger: %w", err)
 	}
@@ -114,7 +117,7 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// logger.WrieDelete(key)
+	logger.WriteDelete(key)
 	log.Printf("---- DELETED ----")
 
 	w.WriteHeader(http.StatusCreated)
