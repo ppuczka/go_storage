@@ -3,22 +3,19 @@ package helpers
 import (
 	"fmt"
 	"os"
+	"go_storage/config"
 )
 
 type EnvironmentVarsPropertiesLoader struct {
-	Properties AppProperties
+	Properties config.Configurations
 }
 
-func(e *EnvironmentVarsPropertiesLoader) DbConfig() PostrgesDBParams {
-	
-	dbParams := PostrgesDBParams{DbName: e.Properties.DatabaseName, Host: e.Properties.DatabaseHost, 
-					User: e.Properties.DatabaseUser, Password: e.Properties.DatabasePass}
-	
-	return dbParams
+func(e *EnvironmentVarsPropertiesLoader) DbConfig() config.DatabaseConfigurations {
+	return e.Properties.Database
 }
 
-func (e *EnvironmentVarsPropertiesLoader) AppConnfig() (host string, port string) {
-	return e.Properties.AppHost, e.Properties.AppPort
+func (e *EnvironmentVarsPropertiesLoader) AppConnfig() config.ServerConfigurations {
+	return e.Properties.Server
 }
 
 
@@ -54,8 +51,10 @@ func NewEnvironmentVarsPropertiesLoader() (PropertiesLoader, error) {
 		return nil, fmt.Errorf("DB_NAME env not present")	
 	}
 
-	loadedProperties := AppProperties{AppPort: port, AppHost: host,  DatabaseHost: dbHost, DatabaseUser: dbUser, DatabasePass: dbPass, DatabaseName: dbName}
-	envPropertiesLoader := &EnvironmentVarsPropertiesLoader{Properties: loadedProperties}
-	
+	serverConfig := config.ServerConfigurations{AppPort: port, AppHost: host}
+	dbConfig := config.DatabaseConfigurations{DbHost: dbHost, DbUser: dbUser, DbPassword: dbPass, DbName: dbName}
+	loadedConfig := config.Configurations{serverConfig, dbConfig}
+
+	envPropertiesLoader := &EnvironmentVarsPropertiesLoader{Properties: loadedConfig}
 	return envPropertiesLoader, nil
 }
