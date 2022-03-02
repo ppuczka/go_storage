@@ -1,0 +1,9 @@
+server:
+  appport: "8088"
+  apphost: "localhost"
+
+database:
+  dbname: "postgres" 
+  dbuser: "postgres"
+  dbpassword: "test"
+  dbhost: "localhost" 
