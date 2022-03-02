@@ -121,6 +121,7 @@ func NewPostgresTransactionLogger(config PostrgesDBParams) (TransactionLogger, e
 
 	connString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable" , config.Host, config.DbName, config.User, config.Password)
 
+	log.Printf(connString)
 	log.Printf("opening connection with db %s %s ", config.Host, config.DbName)
 	
 	db, err := sql.Open("postgres", connString)
@@ -133,6 +134,7 @@ func NewPostgresTransactionLogger(config PostrgesDBParams) (TransactionLogger, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish db connection %w", err)
 	}
+	log.Printf("hehe")
 	logger := &PostgresTransactionLogger{db: db}
 
 	exists, err := logger.verifyTableExists()
