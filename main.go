@@ -27,7 +27,7 @@ func main() {
 	router.HandleFunc("/v1/{key}", keyValueReadHandler).Methods("GET")
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
 	
-	_, listenPort := properties.AppConnfig()
+	listenPort := properties.AppConnfig().AppPort
 	log.Fatal(http.ListenAndServe(listenPort, router))
 	log.Printf("service is running on %s port", port)
 

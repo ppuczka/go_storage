@@ -1,9 +1,11 @@
 package helpers
 
 import (
-	"fmt"
-	"log"
 	"database/sql"
+	"fmt"
+	"go_storage/config"
+	"log"
+
 	_ "github.com/lib/pq"
 )
 
@@ -117,18 +119,18 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 	return outEvent, outError
 }
 
-func NewPostgresTransactionLogger(config PostrgesDBParams) (TransactionLogger, error) {
+func NewPostgresTransactionLogger(config config.DatabaseConfigurations) (TransactionLogger, error) {
 
-	connString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable" , config.Host, config.DbName, config.User, config.Password)
-
+	connString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable" , config.DbHost, config.DbName, config.DbUser, config.DbPassword)
+	
 	log.Printf(connString)
-	log.Printf("opening connection with db %s %s ", config.Host, config.DbName)
+	log.Printf("opening connection with db %s %s ", config.DbHost, config.DbName)
 	
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
-	log.Printf("connection with db %s %s opened", config.Host, config.DbName)
+	log.Printf("connection with db %s %s opened", config.DbHost, config.DbName)
 	
 	err = db.Ping()
 	if err != nil {
