@@ -1,10 +1,10 @@
 package helpers
 
-type PostrgesDBParams struct {
+// type PostrgesDBParams struct {
 
-	DbName   string
-	Host     string
-	User     string
-	Password string
+// 	DbName   string
+// 	Host     string
+// 	User     string
+// 	Password string
 
-}
+// }

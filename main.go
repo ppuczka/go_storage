@@ -11,11 +11,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const port = ":8080"
 var logger helpers.TransactionLogger
 
 func main() {
-	properties, err := helpers.NewEnvironmentVarsPropertiesLoader()
+	properties, err := helpers.NewConfigFilePropertiesLoader("config.yml")
 	if err != nil {
 		log.Fatal("error while loading application properties from env variables: ", err)
 	}
@@ -29,7 +28,7 @@ func main() {
 	
 	listenPort := properties.AppConnfig().AppPort
 	log.Fatal(http.ListenAndServe(listenPort, router))
-	log.Printf("service is running on %s port", port)
+	log.Printf("service is running on %s port", listenPort)
 
 }
 

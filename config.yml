@@ -1,5 +1,5 @@
 server:
-  appport: "8088"
+  appport: ":8088"
   apphost: "localhost"
 
 database:
