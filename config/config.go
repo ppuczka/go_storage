@@ -18,5 +18,7 @@ type DatabaseConfigurations struct {
 type ServerConfigurations struct {
 	AppPort      string
 	AppHost      string
+	TLSCert      string
+	PrivateKey   string
 	
 }

@@ -1,9 +1,11 @@
 server:
   appport: ":8088"
   apphost: "localhost"
+  tlscert: "tls/go_storage.crt"
+  privatekey: "tls/go_storage.key"
 
 database:
   dbname: "postgres" 
   dbuser: "postgres"
   dbpassword: "test"
-  dbhost: "localhost" 
+  dbhost: "172.18.0.3"
