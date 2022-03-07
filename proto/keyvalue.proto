@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/could-native-go/ch08/keyvalue";
+option go_package = "github.com/ppuczka/go_storage";
 
 message GetRequest {
     string key = 1; 
@@ -32,3 +32,5 @@ service KeyVaule {
 
     rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
+
+// protoc -I=/home/ppuczka/programming/go/go_storage/proto/keyvalue.proto --go_out=/home/ppuczka/programming/go/go_storage --go_opt=paths=source_relative --plugin=protoc-gen-go-grpc=/home/ppuczka/go/bin/protoc-gen-go --go-grpc_out=/home/ppuczka/programming/go/go_storage --go-grpc_opt=paths=source_relative /home/ppuczka/programming/go/go_storage/proto/keyvalue.proto -v

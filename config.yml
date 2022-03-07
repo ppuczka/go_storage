@@ -8,4 +8,4 @@ database:
   dbname: "postgres" 
   dbuser: "postgres"
   dbpassword: "test"
-  dbhost: "172.18.0.3"
+  dbhost: "localhost"

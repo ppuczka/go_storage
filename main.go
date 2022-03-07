@@ -6,9 +6,13 @@ import (
 	"go_storage/helpers"
 	"io"
 	"log"
+	"net"
 	"net/http"
 
+	pb "go_storage/proto"
+
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
 )
 
 var logger helpers.TransactionLogger
@@ -21,6 +25,18 @@ func main() {
 
 	initializeTransactionLog(properties)
 	
+	server := grpc.NewServer()
+	pb.RegisterKeyVauleServer(server, &pb.Server{})
+
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	
+	if err := server.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
 	router.HandleFunc("/v1/{key}", keyValueReadHandler).Methods("GET")
