@@ -26,9 +26,10 @@ func main() {
 	initializeTransactionLog(properties)
 	
 	server := grpc.NewServer()
-	pb.RegisterKeyVauleServer(server, &pb.Server{})
+	pb.RegisterKeyVauleServer(server, &pb.Server{TransactionLogger: logger})
 
 	lis, err := net.Listen("tcp", ":50051")
+	log.Printf("GRPC server listening on 50051 port")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
