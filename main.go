@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	// "go_storage/config"
 	"go_storage/helpers"
 	"io"
 	"log"
@@ -20,7 +21,7 @@ var logger helpers.TransactionLogger
 func main() {
 	properties, err := helpers.NewConfigFilePropertiesLoader("config.yml")
 	if err != nil {
-		log.Fatal("error while loading application properties from env variables: ", err)
+		log.Fatal("error while loading application properties: ", err)
 	}
 
 	initializeTransactionLog(properties)
