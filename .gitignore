@@ -1,2 +1,2 @@
 config.yml
-tls/go_storage.key
+tls/*
