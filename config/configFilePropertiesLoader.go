@@ -1,19 +1,19 @@
-package helpers
+package config
 
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"go_storage/config"
+
 )
 type ConfigFilePropertiesLoader struct {
-	Properties config.Configurations
+	Properties Configurations
 }	
 
-func(c *ConfigFilePropertiesLoader) AppConnfig() config.ServerConfigurations {
+func(c *ConfigFilePropertiesLoader) AppConnfig() ServerConfigurations {
 	return c.Properties.Server
 }
 
-func(c *ConfigFilePropertiesLoader) DbConfig() config.DatabaseConfigurations {
+func(c *ConfigFilePropertiesLoader) DbConfig() DatabaseConfigurations {
 	return c.Properties.Database
 }
 
@@ -25,7 +25,7 @@ func NewConfigFilePropertiesLoader(filePath string) (PropertiesLoader, error) {
 		
 	}
 
-	var configuration config.Configurations
+	var configuration Configurations
 
 	err2 := viper.Unmarshal(&configuration)
 	if err2 != nil {

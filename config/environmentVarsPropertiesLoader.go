@@ -1,20 +1,19 @@
-package helpers
+package config
 
 import (
 	"fmt"
 	"os"
-	"go_storage/config"
 )
 
 type EnvironmentVarsPropertiesLoader struct {
-	Properties config.Configurations
+	Properties Configurations
 }
 
-func(e *EnvironmentVarsPropertiesLoader) DbConfig() config.DatabaseConfigurations {
+func(e *EnvironmentVarsPropertiesLoader) DbConfig() DatabaseConfigurations {
 	return e.Properties.Database
 }
 
-func (e *EnvironmentVarsPropertiesLoader) AppConnfig() config.ServerConfigurations {
+func (e *EnvironmentVarsPropertiesLoader) AppConnfig() ServerConfigurations {
 	return e.Properties.Server
 }
 
@@ -51,9 +50,9 @@ func NewEnvironmentVarsPropertiesLoader() (PropertiesLoader, error) {
 		return nil, fmt.Errorf("DB_NAME env not present")	
 	}
 
-	serverConfig := config.ServerConfigurations{AppPort: port, AppHost: host}
-	dbConfig := config.DatabaseConfigurations{DbHost: dbHost, DbUser: dbUser, DbPassword: dbPass, DbName: dbName}
-	loadedConfig := config.Configurations{serverConfig, dbConfig}
+	serverConfig := ServerConfigurations{AppPort: port, AppHost: host}
+	dbConfig := DatabaseConfigurations{DbHost: dbHost, DbUser: dbUser, DbPassword: dbPass, DbName: dbName}
+	loadedConfig := Configurations{serverConfig, dbConfig}
 
 	envPropertiesLoader := &EnvironmentVarsPropertiesLoader{Properties: loadedConfig}
 	return envPropertiesLoader, nil

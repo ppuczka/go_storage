@@ -1,25 +1,28 @@
-package helpers
+package transact
 
 import (
 	"bufio"
 	"fmt"
+	"go_storage/config"
+	"go_storage/core"
 	"os"
+
 )
 
 
 type FileTransactionLogger struct {
-	events 		 chan<- Event	
+	events 		 chan<- core.Event	
 	errors       <-chan error
 	lastSequence uint64
 	file         *os.File
 }
 
 func (l *FileTransactionLogger) WritePut(key, value string) {
-	l.events <- Event{ EventType: EventPut, Key: key, Value: value}
+	l.events <- core.Event{ EventType: core.EventPut, Key: key, Value: value}
 }
 
 func (l *FileTransactionLogger) WriteDelete(key string) {
-	l.events <- Event{ EventType: EventDelete, Key: key}
+	l.events <- core.Event{ EventType: core.EventDelete, Key: key}
 }
 
 func (l *FileTransactionLogger) Err() <- chan error {
@@ -30,13 +33,13 @@ func (l *FileTransactionLogger) LastSequence() uint64 {
 	return l.lastSequence
 }
 
-func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
+func (l *FileTransactionLogger) ReadEvents() (<-chan core.Event, <-chan error) {
 	scanner := bufio.NewScanner(l.file)
-	outEvent := make(chan Event)
+	outEvent := make(chan core.Event)
 	outError := make(chan error, 1)
 
 	go func() {
-		var e Event 
+		var e core.Event 
 		defer close(outEvent)
 		defer close(outError)
 		
@@ -64,7 +67,7 @@ func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 }
 
 func (l *FileTransactionLogger) Run() {
-	events := make(chan Event, 16)
+	events := make(chan core.Event, 16)
 	l.events = events
 
 	errors := make(chan error, 1)
@@ -83,8 +86,8 @@ func (l *FileTransactionLogger) Run() {
 	}()
 }
 
-func NewFileTransactionLogger(filename string) (TransactionLogger, error) {
-	file, err := os.OpenFile(filename, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0755)
+func NewFileTransactionLogger(config config.ServerConfigurations) (core.TransactionLogger, error) {
+	file, err := os.OpenFile(config.LogFile, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0755)
 	
 	if err != nil {
 		fmt.Errorf("cannot open transaction log file: %w", err)

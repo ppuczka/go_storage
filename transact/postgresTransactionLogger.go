@@ -1,9 +1,10 @@
-package helpers
+package transact
 
 import (
 	"database/sql"
 	"fmt"
 	"go_storage/config"
+	"go_storage/core"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -12,18 +13,18 @@ import (
 const tableName = "transactions"
 
 type PostgresTransactionLogger struct {
-	events      chan <- Event
+	events      chan <- core.Event
 	errors      <- chan error
 	db          *sql.DB
 }
 
 
 func (l *PostgresTransactionLogger) WritePut(key, value string) {
-	l.events <- Event{ EventType: EventPut, Key: key, Value: value}
+	l.events <- core.Event{ EventType: core.EventPut, Key: key, Value: value}
 }
 
 func (l *PostgresTransactionLogger) WriteDelete(key string) {
-	l.events <- Event{ EventType: EventDelete, Key: key}
+	l.events <- core.Event{ EventType: core.EventDelete, Key: key}
 }
 
 func (l *PostgresTransactionLogger) Err() <- chan error {
@@ -65,7 +66,7 @@ func (l *PostgresTransactionLogger) createTable() error {
 }
 
 func (l *PostgresTransactionLogger) Run() {
-	events := make(chan Event, 16)
+	events := make(chan core.Event, 16)
 	l.events = events
 
 	errors := make(chan error, 1)
@@ -84,8 +85,8 @@ func (l *PostgresTransactionLogger) Run() {
 	}()
 }
 
-func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
-	outEvent := make(chan Event)
+func (l *PostgresTransactionLogger) ReadEvents() (<-chan core.Event, <-chan error) {
+	outEvent := make(chan core.Event)
 	outError := make(chan error, 1)
 
 	go func() {
@@ -100,7 +101,7 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 			return
 		}
 		defer rows.Close()
-		e := Event{}
+		e := core.Event{}
 
 		for rows.Next() {
 
@@ -119,7 +120,7 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
 	return outEvent, outError
 }
 
-func NewPostgresTransactionLogger(config config.DatabaseConfigurations) (TransactionLogger, error) {
+func NewPostgresTransactionLogger(config config.DatabaseConfigurations) (core.TransactionLogger, error) {
 
 	connString := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable" , config.DbHost, config.DbName, config.DbUser, config.DbPassword)
 	
