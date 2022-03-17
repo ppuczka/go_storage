@@ -1,6 +1,8 @@
 server:
   appport: ":8088"
   apphost: "localhost"
+  logType: "db"
+  frontEndType: "rest"
   tlscert: "tls/go_storage.crt"
   privatekey: "tls/go_storage.key"
   

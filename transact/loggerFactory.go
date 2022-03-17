@@ -10,8 +10,10 @@ func NewTransactionLogger(properties config.PropertiesLoader) (core.TransactionL
 	switch properties.AppConnfig().LogType {
 	case "file":
 		return NewFileTransactionLogger(properties.AppConnfig())
-	case "postgres":
+	
+	case "db":
 		return NewPostgresTransactionLogger(properties.DbConfig())
+	
 	default:
 		return nil, fmt.Errorf("no such transaction logger")
 	}

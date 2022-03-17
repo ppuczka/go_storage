@@ -4,12 +4,13 @@ import (
 	"fmt"
 )
 
-func NewFrontEnd(s string) (FrontEnd, error) {
-	switch s {
+func NewFrontEnd(properties string) (FrontEnd, error) {
+	switch properties {
+		
 	case "rest":
 		return &restFrontEnd{}, nil
 
 	default:
-		return nil, fmt.Errorf("no such frontend %s", s)
+		return nil, fmt.Errorf("no such frontend %s", properties)
 	}
 }

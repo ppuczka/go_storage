@@ -11,10 +11,11 @@ import (
 )
 
 type restFrontEnd struct {
-	store *core.KeyValueStore
+	store      *core.KeyValueStore
+	properties *config.ServerConfigurations 
 }
 
-func (f *restFrontEnd) Start(store *core.KeyValueStore, properties *config.ConfigFilePropertiesLoader) error {
+func (f *restFrontEnd) Start(store *core.KeyValueStore) error {
 	store = f.store
 	router := mux.NewRouter()
 	
@@ -22,11 +23,11 @@ func (f *restFrontEnd) Start(store *core.KeyValueStore, properties *config.Confi
 	router.HandleFunc("/v1/{key}", f.keyValueReadHandler).Methods("GET")
 	router.HandleFunc("/v1/{key}", f.keyValueDeleteHandler).Methods("DELETE")
 	
-	listenPort := properties.AppConnfig().AppPort
+	listenPort := f.properties.AppPort
 	
 	log.Printf("service is running on %s port", listenPort)
 
-	return http.ListenAndServeTLS(listenPort, properties.AppConnfig().TLSCert, properties.AppConnfig().PrivateKey, router)
+	return http.ListenAndServeTLS(listenPort, f.properties.TLSCert, f.properties.PrivateKey, router)
 }
 
 

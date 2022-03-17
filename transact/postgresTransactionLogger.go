@@ -102,7 +102,7 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan core.Event, <-chan erro
 		}
 		defer rows.Close()
 		e := core.Event{}
-
+		
 		for rows.Next() {
 
 			err = rows.Scan(&e.Sequence, &e.EventType, &e.Key, &e.Value)
@@ -116,7 +116,7 @@ func (l *PostgresTransactionLogger) ReadEvents() (<-chan core.Event, <-chan erro
 		if err != nil {
 			outError <- fmt.Errorf("transaction log read failure: %w", err)
 		}
-	}()
+	}()		
 	return outEvent, outError
 }
 
@@ -143,14 +143,14 @@ func NewPostgresTransactionLogger(config config.DatabaseConfigurations) (core.Tr
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify table exists: %w", err)
 	}
-
+	
+	
 	if !exists {
 		if err = logger.createTable(); err != nil {
 			return nil, fmt.Errorf("failed to create table: %w", err)
-		
+			
 		}
 	}
-
 	return logger, nil
 
 }

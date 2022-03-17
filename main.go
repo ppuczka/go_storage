@@ -16,14 +16,14 @@ func main() {
 	}
 	tl, err := transact.NewTransactionLogger(properties)
 	if err != nil {
-		log.Fatal("err")
+		log.Fatal("error while initializing transaction logger: ", err)
 	}	
 	store := core.NewKeyValueStore(tl)
 	store.Restore()
 	
-	fe, err := frontend.NewFrontEnd(properties.AppConnfig().FrondEndType)
+	fe, err := frontend.NewFrontEnd(properties.AppConnfig().FrontEndType)
 	if err != nil {
-		log.Fatal("err")
+		log.Fatal("error in frontend initliazation")
 	}	
 	log.Fatal(fe.Start(store))
 

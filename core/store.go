@@ -50,21 +50,26 @@ func (store *KeyValueStore) Restore() error {
 
 	events, errors := store.transact.ReadEvents()
 	count, ok, e := 0, true, Event{}
-
+	
+		
 	for ok && err == nil {
-		select {
-		case err, ok = <-errors:
 
-		case e, ok = <-events:
-			switch e.EventType {
-			case EventDelete: // Got a DELETE event!
-				err = store.Delete(e.Key)
-				count++
-			case EventPut: // Got a PUT event!
-				err = store.Put(e.Key, e.Value)
-				count++
-			}
+		select {
+			case err, ok = <-errors:
+			log.Printf("1")
+		
+			case e, ok = <-events:
+			
+				switch e.EventType {
+					case EventDelete: // Got a DELETE event!
+						err = store.Delete(e.Key)
+						count++
+					case EventPut: // Got a PUT event!
+						err = store.Put(e.Key, e.Value)
+						count++
+				}
 		}
+		log.Printf("2")
 	}
 
 	log.Printf("%d events replayed\n", count)
