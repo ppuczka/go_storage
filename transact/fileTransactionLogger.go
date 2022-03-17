@@ -96,4 +96,3 @@ func NewFileTransactionLogger(config config.ServerConfigurations) (core.Transact
 	return &FileTransactionLogger{file: file}, nil 
 
 }
-

@@ -1,7 +1,8 @@
-package helpers
+package core
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
@@ -42,4 +43,39 @@ func Delete(key string) error {
 	} 
 	delete(store.m, key)
 	return nil
+}
+
+func (store *KeyValueStore) Restore() error {
+	var err error
+
+	events, errors := store.transact.ReadEvents()
+	count, ok, e := 0, true, Event{}
+
+	for ok && err == nil {
+		select {
+		case err, ok = <-errors:
+
+		case e, ok = <-events:
+			switch e.EventType {
+			case EventDelete: // Got a DELETE event!
+				err = store.Delete(e.Key)
+				count++
+			case EventPut: // Got a PUT event!
+				err = store.Put(e.Key, e.Value)
+				count++
+			}
+		}
+	}
+
+	log.Printf("%d events replayed\n", count)
+
+	store.transact.Run()
+
+	go func() {
+		for err := range store.transact.Err() {
+			log.Print(err)
+		}
+	}()
+
+	return err
 }

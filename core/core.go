@@ -52,3 +52,11 @@ func (store *KeyValueStore) Put(key string, value string) error {
 	store.transact.WritePut(key, value)
 	return nil
 }
+
+func (store *KeyValueStore) Get(key string) (string, error) {
+	value, ok := store.m[key]
+	if !ok {
+		return "", ErrorNoSuchKey
+	}
+	return value, nil
+}

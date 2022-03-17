@@ -20,6 +20,7 @@ type ServerConfigurations struct {
 	AppHost      string
 	LogType      string
 	LogFile		 string
+	FrondEndType string
 	TLSCert      string
 	PrivateKey   string
 	

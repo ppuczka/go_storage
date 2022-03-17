@@ -3,6 +3,7 @@ server:
   apphost: "localhost"
   tlscert: "tls/go_storage.crt"
   privatekey: "tls/go_storage.key"
+  
 
 database:
   dbname: "postgres" 
