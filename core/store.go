@@ -59,12 +59,15 @@ func (store *KeyValueStore) Restore() error {
 			log.Printf("1")
 		
 			case e, ok = <-events:
-			
+				log.Printf("1")
 				switch e.EventType {
+					
 					case EventDelete: // Got a DELETE event!
+						log.Printf("2")
 						err = store.Delete(e.Key)
 						count++
 					case EventPut: // Got a PUT event!
+						log.Printf("3")
 						err = store.Put(e.Key, e.Value)
 						count++
 				}

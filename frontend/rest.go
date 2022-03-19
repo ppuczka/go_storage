@@ -22,7 +22,7 @@ func (f *restFrontEnd) Start(store *core.KeyValueStore) error {
 	router.HandleFunc("/v1/{key}", f.keyValuePutHandler).Methods("PUT")
 	router.HandleFunc("/v1/{key}", f.keyValueReadHandler).Methods("GET")
 	router.HandleFunc("/v1/{key}", f.keyValueDeleteHandler).Methods("DELETE")
-	
+	log.Printf(f.properties.AppPort)
 	listenPort := f.properties.AppPort
 	
 	log.Printf("service is running on %s port", listenPort)
