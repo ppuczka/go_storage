@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: go-storage-app
+  labels:
+    name: go-storage-app
+spec:
+  containers:
+  - name: go-storage-app
+    image: go_storage
+    volumeMounts:
+    - name: config.yml
+      mountPath: "/config/config.yaml"
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    restartPolicy: OnFailure
+    volumes:
+    - name: config
+      secret:
+      secretName: go-storage-app-config-secret
+      mountPath: "/config/config.yml
+    ports:
+    - containerPort: 8080

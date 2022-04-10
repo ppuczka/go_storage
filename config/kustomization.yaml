@@ -1,0 +1,4 @@
+secretGenerator:
+- name: go-storage-app-config-secret
+  files: 
+  - config.yml

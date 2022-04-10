@@ -3,41 +3,40 @@ package main
 import (
 	"errors"
 	"fmt"
-	// "go_storage/config"
 	"go_storage/helpers"
 	"io"
 	"log"
-	"net"
+	// "net"
 	"net/http"
 
-	pb "go_storage/proto"
+	// pb "go_storage/proto"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/grpc"
+	// "google.golang.org/grpc"
 )
 
 var logger helpers.TransactionLogger
 
 func main() {
-	properties, err := helpers.NewConfigFilePropertiesLoader("config.yml")
+	properties, err := helpers.NewConfigFilePropertiesLoader("/config/config.yml")
 	if err != nil {
 		log.Fatal("error while loading application properties: ", err)
 	}
 
 	initializeTransactionLog(properties)
 	
-	server := grpc.NewServer()
-	pb.RegisterKeyVauleServer(server, &pb.Server{TransactionLogger: logger})
+	// server := grpc.NewServer()
+	// pb.RegisterKeyVauleServer(server, &pb.Server{TransactionLogger: logger})
 
-	lis, err := net.Listen("tcp", ":50051")
-	log.Printf("GRPC server listening on 50051 port")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	// lis, err := net.Listen("tcp", ":50051")
+	// log.Printf("GRPC server listening on 50051 port")
+	// if err != nil {
+	// 	log.Fatalf("failed to listen: %v", err)
+	// }
 	
-	if err := server.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	// if err := server.Serve(lis); err != nil {
+	// 	log.Fatalf("failed to serve: %v", err)
+	// }
 
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
@@ -45,10 +44,10 @@ func main() {
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
 	
 	listenPort := properties.AppConnfig().AppPort
+	log.Printf("service is running on %s port", listenPort)
 	log.Fatal(http.ListenAndServeTLS(listenPort, properties.AppConnfig().TLSCert, 
 				properties.AppConnfig().PrivateKey, router))
 	
-	log.Printf("service is running on %s port", listenPort)
 
 }
 
